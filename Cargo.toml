@@ -1,0 +1,8 @@
+[package]
+name = "warren"
+version = "0.1.0"
+authors = ["Bartłomiej Kuras <bartlomiej.kuras@o2.pl>"]
+edition = "2018"
+license = "GNU LGPL"
+
+[dependencies]
