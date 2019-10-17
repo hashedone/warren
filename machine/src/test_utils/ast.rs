@@ -21,11 +21,7 @@ impl TermBuilder for Builder {
         Term::Const(ident)
     }
 
-    fn structure(
-        &mut self,
-        ident: usize,
-        subterms: impl Iterator<Item=Term>,
-    ) -> Term {
+    fn structure(&mut self, ident: usize, subterms: impl Iterator<Item = Term>) -> Term {
         Term::Struct(ident, subterms.collect())
     }
 }
@@ -36,9 +32,7 @@ impl std::fmt::Debug for Term {
             Self::Var(id) => write!(f, "?{}", id),
             Self::Const(ident) => write!(f, "_{}", ident),
             Self::Struct(ident, subterms) => {
-                let subterms: Vec<_> = subterms.into_iter()
-                    .map(|st| format!("{:?}", st))
-                    .collect();
+                let subterms: Vec<_> = subterms.into_iter().map(|st| format!("{:?}", st)).collect();
                 let subterms = subterms.join(", ");
                 write!(f, "_{}({})", ident, subterms)
             }
@@ -47,20 +41,13 @@ impl std::fmt::Debug for Term {
 }
 
 impl Term {
-    fn same(
-        &self,
-        other: &Term,
-        mapping: &mut HashMap<usize, usize>
-    ) -> bool {
+    fn same(&self, other: &Term, mapping: &mut HashMap<usize, usize>) -> bool {
         match (self, other) {
-            (Self::Var(s), Self::Var(o)) => {
-                mapping.entry(*s).or_insert(*o) == o
-            },
+            (Self::Var(s), Self::Var(o)) => mapping.entry(*s).or_insert(*o) == o,
             (Self::Const(s), Self::Const(o)) if s == o => true,
             (Self::Struct(s, ss), Self::Struct(o, so)) if s == o => {
-                ss.iter().zip(so.iter())
-                    .all(|(s, o)| s.same(o, mapping))
-            },
+                ss.iter().zip(so.iter()).all(|(s, o)| s.same(o, mapping))
+            }
             _ => false,
         }
     }
@@ -73,9 +60,7 @@ impl PartialEq for Term {
         let mut mapping = Default::default();
         let same = self.same(other, &mut mapping);
         let mappings = mapping.len();
-        let mapping: HashSet<_> = mapping.into_iter()
-            .map(|(_, o)| o)
-            .collect();
+        let mapping: HashSet<_> = mapping.into_iter().map(|(_, o)| o).collect();
         same && mapping.len() == mappings
     }
 }

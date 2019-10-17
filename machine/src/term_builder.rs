@@ -1,16 +1,12 @@
-use crate::{Machine, Cell};
 use crate::storage::Storage;
-
+use crate::{Cell, Machine};
 
 pub trait TermBuilder {
     type Term;
 
     fn variable(&mut self, id: usize) -> Self::Term;
-    fn structure(
-        &mut self,
-        ident: usize,
-        subterms: impl Iterator<Item=Self::Term>
-    ) -> Self::Term;
+    fn structure(&mut self, ident: usize, subterms: impl Iterator<Item = Self::Term>)
+        -> Self::Term;
     fn constant(&mut self, ident: usize) -> Self::Term {
         self.structure(ident, std::iter::empty())
     }
@@ -20,9 +16,8 @@ impl Machine {
     pub(crate) fn build_term<Builder: TermBuilder>(
         &self,
         cell: Cell,
-        builder: &mut Builder
-    ) -> Option<Builder::Term>
-    {
+        builder: &mut Builder,
+    ) -> Option<Builder::Term> {
         match cell {
             Cell::Ref(idx) => {
                 let target = self.heap.deref(idx)?;
@@ -32,28 +27,23 @@ impl Machine {
                 } else {
                     self.build_term(target, builder)
                 }
-            },
+            }
             Cell::Struct(idx) => {
                 if let Cell::Funct(ident, arity) = self.heap.get(idx)? {
                     if *arity == 0 {
                         Some(builder.constant(*ident))
                     } else {
-                        let subterms: Option<Vec<_>> =
-                            self.heap[idx+1..idx+arity+1]
-                                .iter()
-                                .map(|cell| self.build_term(
-                                    *cell,
-                                    builder
-                                ))
-                                .collect();
+                        let subterms: Option<Vec<_>> = self.heap[idx + 1..idx + arity + 1]
+                            .iter()
+                            .map(|cell| self.build_term(*cell, builder))
+                            .collect();
                         let subterms = subterms?;
 
-                        Some(builder.structure(
-                            *ident,
-                            subterms.into_iter()
-                        ))
+                        Some(builder.structure(*ident, subterms.into_iter()))
                     }
-                } else { None }
+                } else {
+                    None
+                }
             }
             _ => None,
         }
@@ -67,10 +57,7 @@ mod tests {
 
     #[test]
     fn single_const() {
-        let heap = vec![
-            Cell::Struct(1),
-            Cell::Funct(0, 0),
-        ];
+        let heap = vec![Cell::Struct(1), Cell::Funct(0, 0)];
 
         let regs = vec![heap[0]];
 
@@ -88,9 +75,7 @@ mod tests {
 
     #[test]
     fn single_var() {
-        let heap = vec![
-            Cell::Ref(0),
-        ];
+        let heap = vec![Cell::Ref(0)];
 
         let regs = vec![heap[0]];
 
@@ -134,20 +119,12 @@ mod tests {
         let term = machine.build_term(Cell::Struct(8), &mut Builder).unwrap();
 
         let expected = Term::Struct(
-            2, vec![
+            2,
+            vec![
                 Term::Var(2),
-                Term::Struct(
-                    0, vec![
-                        Term::Var(2),
-                        Term::Var(3),
-                    ],
-                ),
-                Term::Struct(
-                    1, vec![
-                        Term::Var(3),
-                    ],
-                ),
-            ]
+                Term::Struct(0, vec![Term::Var(2), Term::Var(3)]),
+                Term::Struct(1, vec![Term::Var(3)]),
+            ],
         );
 
         assert_eq!(expected, term);

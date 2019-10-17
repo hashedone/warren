@@ -1,8 +1,8 @@
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Operation {
     PutStructure(usize, usize, usize), // Ident, Arity, XReg
-    SetVariable(usize), // XReg
-    SetValue(usize), // XReg
+    SetVariable(usize),                // XReg
+    SetValue(usize),                   // XReg
 }
 
 impl Operation {

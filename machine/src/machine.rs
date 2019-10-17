@@ -1,11 +1,11 @@
-use crate::{Cell, Program, Operation};
-use crate::storage::StorageMut;
 use crate::query::{Query, QueryResult};
+use crate::storage::StorageMut;
+use crate::{Cell, Operation, Program};
 
 pub struct Machine {
-    pub(crate) heap: Vec<Cell>,    // Heap
-    pub(crate) xregs: Vec<Cell>,   // X Registers
-    pub(crate) preg: usize,        // Instruction pointer register
+    pub(crate) heap: Vec<Cell>,  // Heap
+    pub(crate) xregs: Vec<Cell>, // X Registers
+    pub(crate) preg: usize,      // Instruction pointer register
 }
 
 impl Default for Machine {
@@ -25,10 +25,8 @@ impl Machine {
 
     fn run(&mut self, program: &Program) {
         if self.xregs.len() < program.x_registers() {
-            self.xregs.resize_with(
-                program.x_registers(),
-                Default::default
-            );
+            self.xregs
+                .resize_with(program.x_registers(), Default::default);
         }
 
         self.preg = 0;
@@ -48,8 +46,7 @@ impl Machine {
 
     fn perform_op(&mut self, op: Operation) {
         match op {
-            Operation::PutStructure(ident, arity, xreg) =>
-                self.put_structure(ident, arity, xreg),
+            Operation::PutStructure(ident, arity, xreg) => self.put_structure(ident, arity, xreg),
             Operation::SetVariable(xreg) => self.set_variable(xreg),
             Operation::SetValue(xreg) => self.set_value(xreg),
         }
@@ -71,8 +68,8 @@ impl Machine {
 #[cfg(test)]
 mod tests {
     use super::Machine;
-    use crate::test_utils::ast::{Term, Builder as TermBuilder};
     use crate::query::QueryBuilder;
+    use crate::test_utils::ast::{Builder as TermBuilder, Term};
 
     #[test]
     fn l0_query() {
@@ -93,20 +90,12 @@ mod tests {
 
         // _2(?0, _1(?0, ?1), _0(?1))
         let expected_term = Term::Struct(
-            2, vec![
+            2,
+            vec![
                 Term::Var(0),
-                Term::Struct(
-                    1, vec![
-                        Term::Var(0),
-                        Term::Var(1),
-                    ],
-                ),
-                Term::Struct(
-                    0, vec![
-                        Term::Var(1)
-                    ],
-                ),
-            ]
+                Term::Struct(1, vec![Term::Var(0), Term::Var(1)]),
+                Term::Struct(0, vec![Term::Var(1)]),
+            ],
         );
 
         assert_eq!(expected_term, term);

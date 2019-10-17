@@ -1,13 +1,13 @@
+use crate::Operation;
 use std::borrow::Cow;
 use std::cmp::max;
-use crate::Operation;
 
 #[repr(usize)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum OpCode {
-    PutStructure,   // Op Ident Arity XReg
-    SetVariable,    // Op XReg
-    SetValue,       // Op XReg
+    PutStructure, // Op Ident Arity XReg
+    SetVariable,  // Op XReg
+    SetValue,     // Op XReg
 }
 
 impl PartialEq<usize> for OpCode {
@@ -24,7 +24,7 @@ impl PartialEq<OpCode> for usize {
 
 pub struct Program<'a> {
     program: Cow<'a, [usize]>,
-    xregs: usize,  // X registers to alocate
+    xregs: usize, // X registers to alocate
 }
 
 impl Default for Program<'static> {
@@ -44,7 +44,9 @@ impl<'a> Program<'a> {
             let arity = self.program[index + 2];
             let xreg = self.program[index + 3];
             Some(Operation::PutStructure(ident, arity, xreg))
-        } else { None }
+        } else {
+            None
+        }
     }
 
     // Builds `SetVariable` from given program index
@@ -52,7 +54,9 @@ impl<'a> Program<'a> {
         if self.program.len() > index + 1 {
             let xreg = self.program[index + 1];
             Some(Operation::SetVariable(xreg))
-        } else { None }
+        } else {
+            None
+        }
     }
 
     // Builds `SetValue` from given program index
@@ -60,7 +64,9 @@ impl<'a> Program<'a> {
         if self.program.len() > index + 1 {
             let xreg = self.program[index + 1];
             Some(Operation::SetValue(xreg))
-        } else { None }
+        } else {
+            None
+        }
     }
 
     /// Gives operation from given program index
@@ -97,9 +103,7 @@ impl Default for ProgramBuilder {
 }
 
 impl ProgramBuilder {
-    pub fn put_structure(
-        &mut self, ident: usize, arity: usize, xreg: usize
-    ) -> &mut Self {
+    pub fn put_structure(&mut self, ident: usize, arity: usize, xreg: usize) -> &mut Self {
         self.xregs = max(self.xregs, xreg + 1);
 
         self.program.push(OpCode::PutStructure as usize);

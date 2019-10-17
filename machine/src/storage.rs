@@ -53,8 +53,9 @@ impl Storage for [Cell] {
         let mut r = self.get(addr).cloned();
 
         while let Some(Cell::Ref(a)) = r {
-            if a == addr { return r }
-            else {
+            if a == addr {
+                return r;
+            } else {
                 addr = a;
                 r = self.get(addr).cloned()
             }
@@ -66,7 +67,7 @@ impl Storage for [Cell] {
 
 #[cfg(test)]
 mod test {
-    use super::{Cell, StorageMut, Storage};
+    use super::{Cell, Storage, StorageMut};
 
     #[test]
     fn push_var() {
@@ -75,7 +76,9 @@ mod test {
 
         if let Cell::Ref(v) = var {
             assert_eq!(var, storage[v]);
-        } else { panic!() }
+        } else {
+            panic!()
+        }
     }
 
     #[test]
@@ -85,7 +88,9 @@ mod test {
 
         if let Cell::Struct(s) = c {
             assert_eq!(Cell::Funct(0, 0), storage[s]);
-        } else { panic!{} }
+        } else {
+            panic! {}
+        }
     }
 
     #[test]
@@ -96,11 +101,7 @@ mod test {
         let v2 = storage.push_var();
 
         if let Cell::Struct(s) = s {
-            assert_eq!(&[
-                Cell::Funct(0, 2),
-                v1,
-                v2,
-            ], &storage[s..s+3]);
+            assert_eq!(&[Cell::Funct(0, 2), v1, v2,], &storage[s..s + 3]);
         }
     }
 

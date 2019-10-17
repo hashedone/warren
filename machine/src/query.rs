@@ -1,5 +1,5 @@
-use crate::{Program, Cell, Machine, TermBuilder};
 use crate::program::ProgramBuilder;
+use crate::{Cell, Machine, Program, TermBuilder};
 use std::borrow::Borrow;
 
 /// Reference to query part for building complex (structure)
@@ -52,7 +52,7 @@ impl QueryBuilder {
     pub fn structure(
         &mut self,
         ident: usize,
-        subterms: impl ExactSizeIterator<Item=impl Borrow<QueryRef>>,
+        subterms: impl ExactSizeIterator<Item = impl Borrow<QueryRef>>,
     ) -> QueryRef {
         let register = self.next_register();
         self.program.put_structure(ident, subterms.len(), register);
@@ -63,10 +63,7 @@ impl QueryBuilder {
         QueryRef(register)
     }
 
-    pub fn constant(
-        &mut self,
-        ident: usize,
-    ) -> QueryRef {
+    pub fn constant(&mut self, ident: usize) -> QueryRef {
         self.structure(ident, std::iter::empty::<QueryRef>())
     }
 
