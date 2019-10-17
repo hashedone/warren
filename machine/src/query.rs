@@ -24,6 +24,12 @@ pub struct QueryBuilder {
     next_register: usize,
 }
 
+impl QueryRef {
+    pub fn id(&self) -> usize {
+        self.0
+    }
+}
+
 impl Default for QueryBuilder {
     fn default() -> Self {
         Self {

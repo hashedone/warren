@@ -32,7 +32,10 @@ impl std::fmt::Debug for Term {
             Self::Var(id) => write!(f, "?{}", id),
             Self::Const(ident) => write!(f, "_{}", ident),
             Self::Struct(ident, subterms) => {
-                let subterms: Vec<_> = subterms.into_iter().map(|st| format!("{:?}", st)).collect();
+                let subterms: Vec<_> = subterms
+                    .into_iter()
+                    .map(|st| format!("{:?}", st))
+                    .collect();
                 let subterms = subterms.join(", ");
                 write!(f, "_{}({})", ident, subterms)
             }

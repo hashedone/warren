@@ -1,0 +1,14 @@
+[package]
+name = "warren-repl"
+version = "0.1.0"
+authors = ["Bartłomiej Kuras <bartlomiej.kuras@o2.pl>"]
+edition = "2018"
+license = "GNU LGPL"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+warren = { package="warren-machine", path = "../machine" }
+rustyline = "5"
+nom = "5"
+bimap = "0.4"
