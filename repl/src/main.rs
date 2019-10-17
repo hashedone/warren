@@ -1,18 +1,14 @@
-use rustyline::{Editor, error::ReadlineError};
+use rustyline::{error::ReadlineError, Editor};
 
 use warren::Machine;
 
 mod ast;
-mod parser;
 mod context;
+mod parser;
 
 use context::Context;
 
-fn handle_query(
-    query: ast::Term,
-    ctx: &mut Context,
-    machine: &mut Machine,
-) {
+fn handle_query(query: ast::Term, ctx: &mut Context, machine: &mut Machine) {
     let (query, variables) = ctx.build_query(query);
     let query_result = machine.query(query);
 
@@ -25,21 +21,16 @@ fn handle_query(
     }
 }
 
-fn handle_stmt(
-    stmt: Option<ast::Statement>,
-    ctx: &mut Context,
-    machine: &mut Machine,
-) {
+fn handle_stmt(stmt: Option<ast::Statement>, ctx: &mut Context, machine: &mut Machine) {
     let stmt = if let Some(stmt) = stmt {
         stmt
     } else {
         println!("Invalid statement");
-        return
+        return;
     };
 
     match stmt {
-        ast::Statement::Query(q) =>
-            handle_query(q, ctx, machine),
+        ast::Statement::Query(q) => handle_query(q, ctx, machine),
     }
 }
 
@@ -57,8 +48,7 @@ fn main() {
                 let ast = parser::parse(line.as_str());
                 handle_stmt(ast.ok(), &mut context, &mut machine);
             }
-            Err(ReadlineError::Interrupted) |
-            Err(ReadlineError::Eof) => { break }
+            Err(ReadlineError::Interrupted) | Err(ReadlineError::Eof) => break,
             Err(err) => {
                 println!("Error: {:?}", err);
             }
@@ -66,5 +56,4 @@ fn main() {
     }
 
     rl.save_history("history").ok();
-
 }
