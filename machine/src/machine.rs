@@ -1,6 +1,6 @@
 use crate::{Cell, Program, Operation};
 use crate::storage::StorageMut;
-use crate::query::Query;
+use crate::query::{Query, QueryResult};
 
 pub struct Machine {
     pub(crate) heap: Vec<Cell>,    // Heap
@@ -38,8 +38,12 @@ impl Machine {
         }
     }
 
-    pub fn query(&mut self, query: Query) {
-        self.run(&query.program)
+    pub fn query(&mut self, query: Query) -> QueryResult {
+        self.run(&query.program);
+        QueryResult {
+            machine: self,
+            regs: self.xregs[0..query.program.x_registers()].to_vec(),
+        }
     }
 
     fn perform_op(&mut self, op: Operation) {
@@ -67,7 +71,6 @@ impl Machine {
 #[cfg(test)]
 mod tests {
     use super::Machine;
-    use crate::{program::ProgramBuilder, Cell};
     use crate::test_utils::ast::{Term, Builder as TermBuilder};
     use crate::query::QueryBuilder;
 
@@ -88,6 +91,7 @@ mod tests {
             .build_term(machine.xregs[p.0], &mut TermBuilder)
             .unwrap();
 
+        // _2(?0, _1(?0, ?1), _0(?1))
         let expected_term = Term::Struct(
             2, vec![
                 Term::Var(0),

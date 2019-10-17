@@ -36,12 +36,6 @@ impl Default for Program<'static> {
     }
 }
 
-impl Program<'static> {
-    pub fn new() -> Self {
-        Default::default()
-    }
-}
-
 impl<'a> Program<'a> {
     // Builds `PutStructure` from given program index
     fn put_structure(&self, index: usize) -> Option<Operation> {
@@ -103,10 +97,6 @@ impl Default for ProgramBuilder {
 }
 
 impl ProgramBuilder {
-    pub fn new() -> Self {
-        Default::default()
-    }
-
     pub fn put_structure(
         &mut self, ident: usize, arity: usize, xreg: usize
     ) -> &mut Self {

@@ -1,4 +1,4 @@
-use crate::Program;
+use crate::{Program, Cell, Machine, TermBuilder};
 use crate::program::ProgramBuilder;
 use std::borrow::Borrow;
 
@@ -6,6 +6,12 @@ use std::borrow::Borrow;
 /// queries, and later for extracting unification result
 #[derive(Clone, Copy)]
 pub struct QueryRef(pub(crate) usize);
+
+/// Result of running query
+pub struct QueryResult<'a> {
+    pub(crate) machine: &'a Machine,
+    pub(crate) regs: Vec<Cell>,
+}
 
 /// Query to be executed
 pub struct Query<'a> {
@@ -71,3 +77,12 @@ impl QueryBuilder {
     }
 }
 
+impl<'a> QueryResult<'a> {
+    pub fn build_term<Builder: TermBuilder>(
+        &self,
+        QueryRef(qref): &QueryRef,
+        builder: &mut Builder,
+    ) -> Option<Builder::Term> {
+        self.machine.build_term(*self.regs.get(*qref)?, builder)
+    }
+}
