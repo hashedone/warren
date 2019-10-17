@@ -33,10 +33,11 @@ impl Machine {
                     if *arity == 0 {
                         Some(builder.constant(*ident))
                     } else {
-                        let subterms: Option<Vec<_>> = self.heap[idx + 1..idx + arity + 1]
-                            .iter()
-                            .map(|cell| self.build_term(*cell, builder))
-                            .collect();
+                        let subterms: Option<Vec<_>> =
+                            self.heap[idx + 1..=idx + arity]
+                                .iter()
+                                .map(|cell| self.build_term(*cell, builder))
+                                .collect();
                         let subterms = subterms?;
 
                         Some(builder.structure(*ident, subterms.into_iter()))

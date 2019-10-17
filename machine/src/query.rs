@@ -77,9 +77,9 @@ impl QueryBuilder {
 impl<'a> QueryResult<'a> {
     pub fn build_term<Builder: TermBuilder>(
         &self,
-        QueryRef(qref): &QueryRef,
+        QueryRef(qref): QueryRef,
         builder: &mut Builder,
     ) -> Option<Builder::Term> {
-        self.machine.build_term(*self.regs.get(*qref)?, builder)
+        self.machine.build_term(*self.regs.get(qref)?, builder)
     }
 }
