@@ -21,7 +21,7 @@ fn ident(s: &str) -> IResult<&str, String> {
 }
 
 fn constant(s: &str) -> IResult<&str, Term> {
-    map(ident, |name| Term::Const(name))(s)
+    map(ident, Term::Const)(s)
 }
 
 fn variable(s: &str) -> IResult<&str, Term> {
@@ -46,7 +46,7 @@ fn term(s: &str) -> IResult<&str, Term> {
 }
 
 fn query(s: &str) -> IResult<&str, Statement> {
-    map(terminated(term, char('?')), |t| Statement::Query(t))(s)
+    map(terminated(term, char('?')), Statement::Query)(s)
 }
 
 pub fn statement(s: &str) -> IResult<&str, Statement> {

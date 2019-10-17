@@ -11,7 +11,7 @@ impl std::fmt::Debug for Term {
             Self::Var(id) => write!(f, "?{}", id),
             Self::Const(id) => write!(f, "{}", id),
             Self::Struct(id, subterms) => {
-                let subterms: Vec<_> = subterms.into_iter().map(|st| format!("{:?}", st)).collect();
+                let subterms: Vec<_> = subterms.iter().map(|st| format!("{:?}", st)).collect();
                 let subterms = subterms.join(", ");
                 write!(f, "{}({})", id, subterms)
             }
