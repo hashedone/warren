@@ -1,5 +1,6 @@
 use crate::{Cell, Program, Operation};
 use crate::storage::StorageMut;
+use crate::query::Query;
 
 pub struct Machine {
     pub(crate) heap: Vec<Cell>,    // Heap
@@ -22,7 +23,7 @@ impl Machine {
         Default::default()
     }
 
-    pub fn run(&mut self, program: &Program) {
+    fn run(&mut self, program: &Program) {
         if self.xregs.len() < program.x_registers() {
             self.xregs.resize_with(
                 program.x_registers(),
@@ -35,6 +36,10 @@ impl Machine {
             self.perform_op(op);
             self.preg += op.advance();
         }
+    }
+
+    pub fn query(&mut self, query: Query) {
+        self.run(&query.program)
     }
 
     fn perform_op(&mut self, op: Operation) {
@@ -63,51 +68,43 @@ impl Machine {
 mod tests {
     use super::Machine;
     use crate::{program::ProgramBuilder, Cell};
+    use crate::test_utils::ast::{Term, Builder as TermBuilder};
+    use crate::query::QueryBuilder;
 
     #[test]
     fn l0_query() {
-        let program = {
-            let mut builder = ProgramBuilder::new();
-            builder
-                .put_structure(0, 2, 2)
-                .set_variable(1)
-                .set_variable(4)
-                .put_structure(1, 1, 3)
-                .set_value(4)
-                .put_structure(2, 3, 0)
-                .set_value(1)
-                .set_value(2)
-                .set_value(3);
-            builder.build()
-        };
+        let mut builder = QueryBuilder::new();
+        let w = builder.variable();
+        let z = builder.variable();
+        let h = builder.structure(1, [z, w].iter());
+        let f = builder.structure(0, [w].iter());
+        let p = builder.structure(2, [z, h, f].iter());
 
-        let heap = vec![
-            Cell::Struct(1),
-            Cell::Funct(0, 2),
-            Cell::Ref(2),
-            Cell::Ref(3),
-            Cell::Struct(5),
-            Cell::Funct(1, 1),
-            Cell::Ref(3),
-            Cell::Struct(8),
-            Cell::Funct(2, 3),
-            Cell::Ref(2),
-            Cell::Struct(1),
-            Cell::Struct(5),
-        ];
-
-        let regs = vec![
-            Cell::Struct(8),
-            Cell::Ref(2),
-            Cell::Struct(1),
-            Cell::Struct(5),
-            Cell::Ref(3),
-        ];
+        let query = builder.build();
 
         let mut machine = Machine::new();
-        machine.run(&program);
+        machine.query(query);
+        let term = machine
+            .build_term(machine.xregs[p.0], &mut TermBuilder)
+            .unwrap();
 
-        assert_eq!(machine.heap, heap);
-        assert_eq!(machine.xregs, regs);
+        let expected_term = Term::Struct(
+            2, vec![
+                Term::Var(0),
+                Term::Struct(
+                    1, vec![
+                        Term::Var(0),
+                        Term::Var(1),
+                    ],
+                ),
+                Term::Struct(
+                    0, vec![
+                        Term::Var(1)
+                    ],
+                ),
+            ]
+        );
+
+        assert_eq!(expected_term, term);
     }
 }

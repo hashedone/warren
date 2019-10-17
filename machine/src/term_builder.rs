@@ -5,22 +5,22 @@ use crate::storage::Storage;
 pub trait TermBuilder {
     type Term;
 
-    fn variable(&self, id: usize) -> Self::Term;
+    fn variable(&mut self, id: usize) -> Self::Term;
     fn structure(
-        &self,
+        &mut self,
         ident: usize,
         subterms: impl Iterator<Item=Self::Term>
     ) -> Self::Term;
-    fn constant(&self, ident: usize) -> Self::Term {
+    fn constant(&mut self, ident: usize) -> Self::Term {
         self.structure(ident, std::iter::empty())
     }
 }
 
 impl Machine {
-    fn build_term<Builder: TermBuilder>(
+    pub(crate) fn build_term<Builder: TermBuilder>(
         &self,
         cell: Cell,
-        builder: &Builder
+        builder: &mut Builder
     ) -> Option<Builder::Term>
     {
         match cell {
@@ -80,7 +80,7 @@ mod tests {
             ..Default::default()
         };
 
-        let term = machine.build_term(Cell::Struct(1), &Builder).unwrap();
+        let term = machine.build_term(Cell::Struct(1), &mut Builder).unwrap();
         let expected = Term::Const(0);
 
         assert_eq!(expected, term);
@@ -100,7 +100,7 @@ mod tests {
             ..Default::default()
         };
 
-        let term = machine.build_term(Cell::Ref(0), &Builder).unwrap();
+        let term = machine.build_term(Cell::Ref(0), &mut Builder).unwrap();
         let expected = Term::Var(0);
 
         assert_eq!(expected, term);
@@ -131,7 +131,7 @@ mod tests {
             ..Default::default()
         };
 
-        let term = machine.build_term(Cell::Struct(8), &Builder).unwrap();
+        let term = machine.build_term(Cell::Struct(8), &mut Builder).unwrap();
 
         let expected = Term::Struct(
             2, vec![
