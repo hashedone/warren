@@ -25,7 +25,7 @@ pub struct QueryBuilder {
 }
 
 impl QueryRef {
-    pub fn id(&self) -> usize {
+    pub fn id(self) -> usize {
         self.0
     }
 }

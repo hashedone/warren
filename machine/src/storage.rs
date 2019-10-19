@@ -15,6 +15,32 @@ impl Default for Cell {
     }
 }
 
+impl Cell {
+    pub fn to_ref(self) -> Option<usize> {
+        if let Self::Ref(r) = self {
+            Some(r)
+        } else {
+            None
+        }
+    }
+
+    pub fn to_struct(self) -> Option<usize> {
+        if let Self::Struct(s) = self {
+            Some(s)
+        } else {
+            None
+        }
+    }
+
+    pub fn to_funct(self) -> Option<(usize, usize)> {
+        if let Self::Funct(f, n) = self {
+            Some((f, n))
+        } else {
+            None
+        }
+    }
+}
+
 /// Address space for machine
 #[derive(Debug)]
 pub struct Storage {
@@ -42,24 +68,27 @@ impl Default for Storage {
 impl std::ops::Deref for Storage {
     type Target = [Cell];
 
-    fn deref(&self) -> &[Cell] { &self.store }
+    fn deref(&self) -> &[Cell] {
+        &self.store
+    }
 }
 
 impl std::ops::DerefMut for Storage {
-    fn deref_mut(&mut self) -> &mut [Cell] { &mut self.store }
+    fn deref_mut(&mut self) -> &mut [Cell] {
+        &mut self.store
+    }
 }
 
 impl Storage {
-    pub fn new() -> Self { Default::default() }
+    pub fn new() -> Self {
+        Default::default()
+    }
 
     #[cfg(test)]
-    pub(crate) fn from_iter(
-        regs: usize,
-        store: impl Iterator<Item=Cell>
-    ) -> Self {
+    pub(crate) fn from_iter(regs: usize, store: impl Iterator<Item = Cell>) -> Self {
         Self {
             regs,
-            store: store.collect()
+            store: store.collect(),
         }
     }
 
@@ -103,8 +132,11 @@ impl Storage {
     /// referencing cell out of bound
     pub fn deref_idx(&self, mut addr: usize) -> Option<usize> {
         while let Cell::Ref(a) = self.store.get(addr)? {
-            if *a == addr { return Some(*a) }
-            else { addr = *a }
+            if *a == addr {
+                return Some(*a);
+            } else {
+                addr = *a
+            }
         }
 
         Some(addr)
@@ -123,11 +155,9 @@ impl Storage {
     /// given cell is self referencing
     pub fn bind(&mut self, a1: usize, a2: usize) {
         match (self.store[a1], self.store[a2]) {
-            (Cell::Ref(r1), _) if r1 == a1 =>
-                self.store[a1] = Cell::Ref(a2),
-            (_, Cell::Ref(r2)) if r2 == a2 =>
-                self.store[a2] = Cell::Ref(a1),
-            _ => ()
+            (Cell::Ref(r1), _) if r1 == a1 => self.store[a1] = Cell::Ref(a2),
+            (_, Cell::Ref(r2)) if r2 == a2 => self.store[a2] = Cell::Ref(a1),
+            _ => (),
         }
     }
 
@@ -145,30 +175,26 @@ impl Storage {
 
                 if d1 != d2 {
                     match (self.store[d1], self.store[d2]) {
-                        (Cell::Ref(_), _) | (_, Cell::Ref(_)) =>
-                            self.bind(d1, d2),
+                        (Cell::Ref(_), _) | (_, Cell::Ref(_)) => self.bind(d1, d2),
                         (Cell::Struct(v1), Cell::Struct(v2)) => {
-                            let (f1, n1) = if let Cell::Funct(f1, n1) = self.store.get(v1)? {
-                                (f1, n1)
-                            } else { None? };
-                            let (f2, n2) = if let Cell::Funct(f2, n2) = self.store.get(v2)? {
-                                (f2, n2)
-                            } else { None? };
+                            let (f1, n1) = self.store.get(v1)?.to_funct()?;
+                            let (f2, n2) = self.store.get(v2)?.to_funct()?;
 
                             if f1 == f2 && n1 == n2 {
-                                for i in 1..=*n1 {
+                                for i in 1..=n1 {
                                     pld.push((v1 + i, v2 + i))
                                 }
-                            } else { None? };
-                        },
-                        _ => None?
+                            } else {
+                                None?
+                            };
+                        }
+                        _ => None?,
                     }
                 }
             }
 
             Some(())
-        }().is_some()
+        }()
+        .is_some()
     }
 }
-
-

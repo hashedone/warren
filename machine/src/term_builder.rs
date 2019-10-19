@@ -32,11 +32,10 @@ impl Machine {
                     if *arity == 0 {
                         Some(builder.constant(*ident))
                     } else {
-                        let subterms: Option<Vec<_>> =
-                            self.storage[idx + 1..=idx + arity]
-                                .iter()
-                                .map(|cell| self.build_term(*cell, builder))
-                                .collect();
+                        let subterms: Option<Vec<_>> = self.storage[idx + 1..=idx + arity]
+                            .iter()
+                            .map(|cell| self.build_term(*cell, builder))
+                            .collect();
                         let subterms = subterms?;
 
                         Some(builder.structure(*ident, subterms.into_iter()))
@@ -53,14 +52,11 @@ impl Machine {
 #[cfg(test)]
 mod tests {
     use crate::test_utils::ast::{Builder, Term};
-    use crate::{Cell, Machine, storage::Storage};
+    use crate::{storage::Storage, Cell, Machine};
 
     #[test]
     fn single_const() {
-        let storage = Storage::from_iter(0, vec![
-            Cell::Struct(1),
-            Cell::Funct(0, 0),
-        ].into_iter());
+        let storage = Storage::from_iter(0, vec![Cell::Struct(1), Cell::Funct(0, 0)].into_iter());
 
         let machine = {
             let mut machine = Machine::new();
@@ -68,9 +64,7 @@ mod tests {
             machine
         };
 
-        let term = machine
-            .build_term(Cell::Struct(1), &mut Builder)
-            .unwrap();
+        let term = machine.build_term(Cell::Struct(1), &mut Builder).unwrap();
         let expected = Term::Const(0);
 
         assert_eq!(expected, term);
@@ -78,9 +72,7 @@ mod tests {
 
     #[test]
     fn single_var() {
-        let storage = Storage::from_iter(0, vec![
-            Cell::Ref(0),
-        ].into_iter());
+        let storage = Storage::from_iter(0, vec![Cell::Ref(0)].into_iter());
 
         let machine = {
             let mut machine = Machine::new();
@@ -88,9 +80,7 @@ mod tests {
             machine
         };
 
-        let term = machine
-            .build_term(Cell::Ref(0), &mut Builder)
-            .unwrap();
+        let term = machine.build_term(Cell::Ref(0), &mut Builder).unwrap();
         let expected = Term::Var(0);
 
         assert_eq!(expected, term);
@@ -98,20 +88,24 @@ mod tests {
 
     #[test]
     fn sample_term() {
-        let storage = Storage::from_iter(0, vec![
-            Cell::Struct(1),
-            Cell::Funct(0, 2),
-            Cell::Ref(2),
-            Cell::Ref(3),
-            Cell::Struct(6),
-            Cell::Funct(1, 1),
-            Cell::Ref(3),
-            Cell::Struct(8),
-            Cell::Funct(2, 3),
-            Cell::Ref(2),
-            Cell::Struct(1),
-            Cell::Struct(5),
-        ].into_iter());
+        let storage = Storage::from_iter(
+            0,
+            vec![
+                Cell::Struct(1),
+                Cell::Funct(0, 2),
+                Cell::Ref(2),
+                Cell::Ref(3),
+                Cell::Struct(6),
+                Cell::Funct(1, 1),
+                Cell::Ref(3),
+                Cell::Struct(8),
+                Cell::Funct(2, 3),
+                Cell::Ref(2),
+                Cell::Struct(1),
+                Cell::Struct(5),
+            ]
+            .into_iter(),
+        );
 
         let machine = {
             let mut machine = Machine::new();

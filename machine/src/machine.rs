@@ -9,8 +9,8 @@ enum UnificationState {
 
 pub struct Machine {
     pub(crate) storage: Storage,
-    preg: usize,      // Instruction pointer register
-    sreg: usize,      // S register
+    preg: usize,                         // Instruction pointer register
+    sreg: usize,                         // S register
     unification_state: UnificationState, // Read/Write state for unification
 }
 
@@ -75,15 +75,12 @@ impl Machine {
         true
     }
 
-    fn get_structure(
-        &mut self,
-        ident: usize,
-        arity: usize,
-        xreg: usize
-    ) -> bool {
+    fn get_structure(&mut self, ident: usize, arity: usize, xreg: usize) -> bool {
         let item = if let Some(item) = self.storage.deref(xreg) {
             item
-        } else { return false };
+        } else {
+            return false;
+        };
 
         match item {
             Cell::Ref(r) => {
@@ -92,14 +89,16 @@ impl Machine {
                 self.storage.bind(r, idx);
                 self.unification_state = UnificationState::Write;
                 true
-            },
+            }
             Cell::Struct(a) => {
                 if Cell::Funct(ident, arity) == self.storage[a] {
                     self.sreg = a + 1;
                     self.unification_state = UnificationState::Read;
                     true
-                } else { false }
-            },
+                } else {
+                    false
+                }
+            }
             _ => false,
         }
     }
@@ -108,10 +107,10 @@ impl Machine {
         match self.unification_state {
             UnificationState::Read => {
                 self.storage[xreg] = self.storage[self.sreg];
-            },
+            }
             UnificationState::Write => {
                 self.storage[xreg] = self.storage.push_var();
-            },
+            }
         }
         self.sreg += 1;
         true
@@ -120,11 +119,11 @@ impl Machine {
     fn unify_value(&mut self, xreg: usize) -> bool {
         match self.unification_state {
             UnificationState::Read => {
-               self.storage.unify(xreg, self.sreg);
-            },
+                self.storage.unify(xreg, self.sreg);
+            }
             UnificationState::Write => {
                 self.storage.push_cell(self.storage[xreg]);
-            },
+            }
         }
         self.sreg += 1;
         true

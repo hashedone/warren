@@ -35,9 +35,7 @@ impl Context {
         variables: &mut HashMap<String, QueryRef>,
     ) -> QueryRef {
         match term {
-            Term::Var(v) => *variables
-                .entry(v)
-                .or_insert_with(|| builder.variable()),
+            Term::Var(v) => *variables.entry(v).or_insert_with(|| builder.variable()),
             Term::Const(id) => {
                 let id = self.get_id(id);
                 builder.constant(id)
