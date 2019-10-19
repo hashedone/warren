@@ -89,7 +89,7 @@ impl Machine {
             Cell::Ref(r) => {
                 let idx = self.storage.len();
                 self.storage.push_struct(ident, arity);
-//                self.storage.bind(r, idx); TODO: Implement bind
+                self.storage.bind(r, idx);
                 self.unification_state = UnificationState::Write;
                 true
             },
@@ -120,7 +120,7 @@ impl Machine {
     fn unify_value(&mut self, xreg: usize) -> bool {
         match self.unification_state {
             UnificationState::Read => {
-                // ???? unify(Xi, S)
+               self.storage.unify(xreg, self.sreg);
             },
             UnificationState::Write => {
                 self.storage.push_cell(self.storage[xreg]);
