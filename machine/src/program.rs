@@ -103,7 +103,12 @@ impl Default for ProgramBuilder {
 }
 
 impl ProgramBuilder {
-    pub fn put_structure(&mut self, ident: usize, arity: usize, xreg: usize) -> &mut Self {
+    pub fn put_structure(
+        &mut self,
+        ident: usize,
+        arity: usize,
+        xreg: usize
+    ) -> &mut Self {
         self.xregs = max(self.xregs, xreg + 1);
 
         self.program.push(OpCode::PutStructure as usize);

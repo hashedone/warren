@@ -161,6 +161,26 @@ impl Storage {
         }
     }
 
+    fn unify_struct(
+        &mut self,
+        s1: usize,
+        s2: usize,
+        pld: &mut Vec<(usize, usize)>,
+    ) -> Option<()> {
+        let (f1, n1) = self.store.get(s1)?.to_funct()?;
+        let (f2, n2) = self.store.get(s2)?.to_funct()?;
+
+        if f1 == f2 && n1 == n2 {
+            for i in 1..=n1 {
+                pld.push((s1 + i, s2 + i))
+            }
+        } else {
+            None?
+        };
+
+        Some(())
+    }
+
     /// Unifies two cells in storage
     ///
     /// Returns true if unification succeed, false otherwise
@@ -175,19 +195,10 @@ impl Storage {
 
                 if d1 != d2 {
                     match (self.store[d1], self.store[d2]) {
-                        (Cell::Ref(_), _) | (_, Cell::Ref(_)) => self.bind(d1, d2),
-                        (Cell::Struct(v1), Cell::Struct(v2)) => {
-                            let (f1, n1) = self.store.get(v1)?.to_funct()?;
-                            let (f2, n2) = self.store.get(v2)?.to_funct()?;
-
-                            if f1 == f2 && n1 == n2 {
-                                for i in 1..=n1 {
-                                    pld.push((v1 + i, v2 + i))
-                                }
-                            } else {
-                                None?
-                            };
-                        }
+                        (Cell::Ref(_), _) | (_, Cell::Ref(_)) =>
+                            self.bind(d1, d2),
+                        (Cell::Struct(v1), Cell::Struct(v2)) =>
+                            self.unify_struct(v1, v2, &mut pld)?,
                         _ => None?,
                     }
                 }

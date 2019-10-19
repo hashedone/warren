@@ -34,7 +34,8 @@ impl Default for QueryBuilder {
     fn default() -> Self {
         Self {
             program: Default::default(),
-            next_register: 0,
+            // 0 register is reserved for top level term
+            next_register: 1,
         }
     }
 }
