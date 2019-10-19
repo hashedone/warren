@@ -3,6 +3,9 @@ pub enum Operation {
     PutStructure(usize, usize, usize), // Ident, Arity, XReg
     SetVariable(usize),                // XReg
     SetValue(usize),                   // XReg
+    GetStructure(usize, usize, usize), // Ident, Arity, XReg
+    UnifyVariable(usize),              // XReg
+    UnifyValue(usize),                 // XReg
 }
 
 impl Operation {
@@ -17,6 +20,9 @@ impl Operation {
             Self::PutStructure(_, _, _) => 4,
             Self::SetVariable(_) => 2,
             Self::SetValue(_) => 2,
+            Self::GetStructure(_, _, _) => 4,
+            Self::UnifyVariable(_) => 2,
+            Self::UnifyValue(_) => 2,
         }
     }
 }

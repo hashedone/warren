@@ -16,22 +16,6 @@ impl Default for Cell {
 }
 
 impl Cell {
-    pub fn to_ref(self) -> Option<usize> {
-        if let Self::Ref(r) = self {
-            Some(r)
-        } else {
-            None
-        }
-    }
-
-    pub fn to_struct(self) -> Option<usize> {
-        if let Self::Struct(s) = self {
-            Some(s)
-        } else {
-            None
-        }
-    }
-
     pub fn to_funct(self) -> Option<(usize, usize)> {
         if let Self::Funct(f, n) = self {
             Some((f, n))

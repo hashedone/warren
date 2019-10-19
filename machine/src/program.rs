@@ -8,6 +8,9 @@ pub(crate) enum OpCode {
     PutStructure, // Op Ident Arity XReg
     SetVariable,  // Op XReg
     SetValue,     // Op XReg
+    GetStructure, // Op Ident Arity XReg
+    UnifyVariable, // Op XReg
+    UnifyValue,   // Op XReg
 }
 
 impl PartialEq<usize> for OpCode {
@@ -69,12 +72,47 @@ impl<'a> Program<'a> {
         }
     }
 
+    // Builds `GetStructure` from given program index
+    fn get_structure(&self, index: usize) -> Option<Operation> {
+        if self.program.len() > index + 3 {
+            let ident = self.program[index + 1];
+            let arity = self.program[index + 2];
+            let xreg = self.program[index + 3];
+            Some(Operation::GetStructure(ident, arity, xreg))
+        } else {
+            None
+        }
+    }
+
+    // Builds `UnifyVariable` from given program index
+    fn unify_variable(&self, index: usize) -> Option<Operation> {
+        if self.program.len() > index + 1 {
+            let xreg = self.program[index + 1];
+            Some(Operation::UnifyVariable(xreg))
+        } else {
+            None
+        }
+    }
+
+    // Builds `UnifyValue` from given program index
+    fn unify_value(&self, index: usize) -> Option<Operation> {
+        if self.program.len() > index + 1 {
+            let xreg = self.program[index + 1];
+            Some(Operation::UnifyValue(xreg))
+        } else {
+            None
+        }
+    }
+
     /// Gives operation from given program index
     pub fn operation(&self, index: usize) -> Option<Operation> {
         match self.program.get(index)? {
             op if *op == OpCode::PutStructure => self.put_structure(index),
             op if *op == OpCode::SetVariable => self.set_variable(index),
             op if *op == OpCode::SetValue => self.set_value(index),
+            op if *op == OpCode::GetStructure => self.get_structure(index),
+            op if *op == OpCode::UnifyVariable => self.unify_variable(index),
+            op if *op == OpCode::UnifyValue => self.unify_value(index),
             _ => None,
         }
     }
