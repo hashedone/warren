@@ -31,8 +31,6 @@ impl Machine {
     }
 
     fn run(&mut self, program: &Program) {
-        self.storage.reset(program.x_registers());
-
         self.preg = 0;
         while let Some(op) = program.operation(self.preg) {
             self.perform_op(op);
@@ -41,7 +39,13 @@ impl Machine {
     }
 
     pub fn query(&mut self, query: Query) -> QueryResult {
+        self.storage.reset(query.program.x_registers());
+
         self.run(&query.program);
+        if query.top_level != 0 {
+            // 0 register should contain top level structure
+            self.storage[0] = self.storage[query.top_level];
+        }
 
         let regs = query.program.x_registers();
         QueryResult {
@@ -145,7 +149,7 @@ mod tests {
         let f = builder.structure(0, [w].iter());
         let p = builder.structure(2, [z, h, f].iter());
 
-        let query = builder.build();
+        let query = builder.build(p);
 
         let mut machine = Machine::new();
         machine.query(query);

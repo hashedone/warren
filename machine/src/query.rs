@@ -16,6 +16,8 @@ pub struct QueryResult<'a> {
 /// Query to be executed
 pub struct Query<'a> {
     pub(crate) program: Program<'a>,
+    // Register with top-level struct assigned
+    pub(crate) top_level: usize,
 }
 
 /// Builder for structured query
@@ -74,9 +76,10 @@ impl QueryBuilder {
         self.structure(ident, std::iter::empty::<QueryRef>())
     }
 
-    pub fn build(self) -> Query<'static> {
+    pub fn build(self, QueryRef(r): QueryRef) -> Query<'static> {
         Query {
             program: self.program.build(),
+            top_level: r,
         }
     }
 }

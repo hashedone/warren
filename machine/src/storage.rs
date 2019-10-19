@@ -161,12 +161,7 @@ impl Storage {
         }
     }
 
-    fn unify_struct(
-        &mut self,
-        s1: usize,
-        s2: usize,
-        pld: &mut Vec<(usize, usize)>,
-    ) -> Option<()> {
+    fn unify_struct(&mut self, s1: usize, s2: usize, pld: &mut Vec<(usize, usize)>) -> Option<()> {
         let (f1, n1) = self.store.get(s1)?.to_funct()?;
         let (f2, n2) = self.store.get(s2)?.to_funct()?;
 
@@ -195,10 +190,10 @@ impl Storage {
 
                 if d1 != d2 {
                     match (self.store[d1], self.store[d2]) {
-                        (Cell::Ref(_), _) | (_, Cell::Ref(_)) =>
-                            self.bind(d1, d2),
-                        (Cell::Struct(v1), Cell::Struct(v2)) =>
-                            self.unify_struct(v1, v2, &mut pld)?,
+                        (Cell::Ref(_), _) | (_, Cell::Ref(_)) => self.bind(d1, d2),
+                        (Cell::Struct(v1), Cell::Struct(v2)) => {
+                            self.unify_struct(v1, v2, &mut pld)?
+                        }
                         _ => None?,
                     }
                 }

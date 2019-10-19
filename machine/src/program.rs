@@ -4,7 +4,7 @@ use std::cmp::max;
 
 #[repr(usize)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum OpCode {
+pub(crate) enum OpCode {
     PutStructure, // Op Ident Arity XReg
     SetVariable,  // Op XReg
     SetValue,     // Op XReg
@@ -103,12 +103,7 @@ impl Default for ProgramBuilder {
 }
 
 impl ProgramBuilder {
-    pub fn put_structure(
-        &mut self,
-        ident: usize,
-        arity: usize,
-        xreg: usize
-    ) -> &mut Self {
+    pub fn put_structure(&mut self, ident: usize, arity: usize, xreg: usize) -> &mut Self {
         self.xregs = max(self.xregs, xreg + 1);
 
         self.program.push(OpCode::PutStructure as usize);

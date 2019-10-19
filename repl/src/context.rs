@@ -54,9 +54,9 @@ impl Context {
     pub fn build_query(&mut self, term: Term) -> (Query, HashMap<String, QueryRef>) {
         let mut builder = Default::default();
         let mut variables = Default::default();
-        self.build_query_ref(term, &mut builder, &mut variables);
+        let term = self.build_query_ref(term, &mut builder, &mut variables);
 
-        (builder.build(), variables)
+        (builder.build(term), variables)
     }
 }
 
