@@ -1,18 +1,16 @@
 use crate::query::{Query, QueryResult};
-use crate::storage::StorageMut;
-use crate::{Cell, Operation, Program};
+use crate::storage::Storage;
+use crate::{Operation, Program};
 
 pub struct Machine {
-    pub(crate) heap: Vec<Cell>,  // Heap
-    pub(crate) xregs: Vec<Cell>, // X Registers
+    pub(crate) storage: Storage,
     pub(crate) preg: usize,      // Instruction pointer register
 }
 
 impl Default for Machine {
     fn default() -> Self {
         Self {
-            heap: vec![],
-            xregs: vec![],
+            storage: Storage::new(),
             preg: 0,
         }
     }
@@ -24,10 +22,7 @@ impl Machine {
     }
 
     fn run(&mut self, program: &Program) {
-        if self.xregs.len() < program.x_registers() {
-            self.xregs
-                .resize_with(program.x_registers(), Default::default);
-        }
+        self.storage.reset(program.x_registers());
 
         self.preg = 0;
         while let Some(op) = program.operation(self.preg) {
@@ -38,9 +33,11 @@ impl Machine {
 
     pub fn query(&mut self, query: Query) -> QueryResult {
         self.run(&query.program);
+
+        let regs = query.program.x_registers();
         QueryResult {
             machine: self,
-            regs: self.xregs[0..query.program.x_registers()].to_vec(),
+            regs: self.storage.registers()[0..regs].to_vec(),
         }
     }
 
@@ -53,15 +50,17 @@ impl Machine {
     }
 
     fn put_structure(&mut self, ident: usize, arity: usize, xreg: usize) {
-        self.xregs[xreg] = self.heap.push_struct(ident, arity);
+        let cell = self.storage.push_struct(ident, arity);
+        self.storage[xreg] = cell;
     }
 
     fn set_variable(&mut self, xreg: usize) {
-        self.xregs[xreg] = self.heap.push_var();
+        let cell = self.storage.push_var();
+        self.storage[xreg] = cell;
     }
 
     fn set_value(&mut self, xreg: usize) {
-        self.heap.push(self.xregs[xreg]);
+        self.storage.push_cell(self.storage[xreg]);
     }
 }
 
@@ -85,7 +84,7 @@ mod tests {
         let mut machine = Machine::new();
         machine.query(query);
         let term = machine
-            .build_term(machine.xregs[p.0], &mut TermBuilder)
+            .build_term(machine.storage[p.0], &mut TermBuilder)
             .unwrap();
 
         // _2(?0, _1(?0, ?1), _0(?1))

@@ -1,4 +1,3 @@
-use crate::storage::Storage;
 use crate::{Cell, Machine};
 
 pub trait TermBuilder {
@@ -20,7 +19,7 @@ impl Machine {
     ) -> Option<Builder::Term> {
         match cell {
             Cell::Ref(idx) => {
-                let target = self.heap.deref(idx)?;
+                let target = self.storage.deref(idx)?;
 
                 if let Cell::Ref(idx) = target {
                     Some(builder.variable(idx))
@@ -29,12 +28,12 @@ impl Machine {
                 }
             }
             Cell::Struct(idx) => {
-                if let Cell::Funct(ident, arity) = self.heap.get(idx)? {
+                if let Cell::Funct(ident, arity) = self.storage.get(idx)? {
                     if *arity == 0 {
                         Some(builder.constant(*ident))
                     } else {
                         let subterms: Option<Vec<_>> =
-                            self.heap[idx + 1..=idx + arity]
+                            self.storage[idx + 1..=idx + arity]
                                 .iter()
                                 .map(|cell| self.build_term(*cell, builder))
                                 .collect();
@@ -54,17 +53,17 @@ impl Machine {
 #[cfg(test)]
 mod tests {
     use crate::test_utils::ast::{Builder, Term};
-    use crate::{Cell, Machine};
+    use crate::{Cell, Machine, storage::Storage};
 
     #[test]
     fn single_const() {
-        let heap = vec![Cell::Struct(1), Cell::Funct(0, 0)];
-
-        let regs = vec![heap[0]];
+        let storage = Storage::from_iter(0, vec![
+            Cell::Struct(1),
+            Cell::Funct(0, 0),
+        ].into_iter());
 
         let machine = Machine {
-            heap,
-            xregs: regs,
+            storage,
             ..Default::default()
         };
 
@@ -76,13 +75,12 @@ mod tests {
 
     #[test]
     fn single_var() {
-        let heap = vec![Cell::Ref(0)];
-
-        let regs = vec![heap[0]];
+        let storage = Storage::from_iter(0, vec![
+            Cell::Ref(0),
+        ].into_iter());
 
         let machine = Machine {
-            heap,
-            xregs: regs,
+            storage,
             ..Default::default()
         };
 
@@ -94,12 +92,12 @@ mod tests {
 
     #[test]
     fn sample_term() {
-        let heap = vec![
+        let storage = Storage::from_iter(0, vec![
             Cell::Struct(1),
             Cell::Funct(0, 2),
             Cell::Ref(2),
             Cell::Ref(3),
-            Cell::Struct(5),
+            Cell::Struct(6),
             Cell::Funct(1, 1),
             Cell::Ref(3),
             Cell::Struct(8),
@@ -107,13 +105,10 @@ mod tests {
             Cell::Ref(2),
             Cell::Struct(1),
             Cell::Struct(5),
-        ];
-
-        let regs = vec![heap[7]];
+        ].into_iter());
 
         let machine = Machine {
-            heap,
-            xregs: regs,
+            storage,
             ..Default::default()
         };
 
