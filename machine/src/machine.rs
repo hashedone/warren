@@ -56,18 +56,12 @@ impl Machine {
 
     fn perform_op(&mut self, op: Operation) -> bool {
         match op {
-            Operation::PutStructure(ident, arity, xreg) =>
-                self.put_structure(ident, arity, xreg),
-            Operation::SetVariable(xreg) =>
-                self.set_variable(xreg),
-            Operation::SetValue(xreg) =>
-                self.set_value(xreg),
-            Operation::GetStructure(ident, arity, xreg) =>
-                self.get_structure(ident, arity, xreg),
-            Operation::UnifyVariable(xreg) =>
-                self.unify_variable(xreg),
-            Operation::UnifyValue(xreg) =>
-                self.unify_value(xreg),
+            Operation::PutStructure(ident, arity, xreg) => self.put_structure(ident, arity, xreg),
+            Operation::SetVariable(xreg) => self.set_variable(xreg),
+            Operation::SetValue(xreg) => self.set_value(xreg),
+            Operation::GetStructure(ident, arity, xreg) => self.get_structure(ident, arity, xreg),
+            Operation::UnifyVariable(xreg) => self.unify_variable(xreg),
+            Operation::UnifyValue(xreg) => self.unify_value(xreg),
         }
     }
 

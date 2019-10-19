@@ -5,12 +5,12 @@ use std::cmp::max;
 #[repr(usize)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum OpCode {
-    PutStructure, // Op Ident Arity XReg
-    SetVariable,  // Op XReg
-    SetValue,     // Op XReg
-    GetStructure, // Op Ident Arity XReg
+    PutStructure,  // Op Ident Arity XReg
+    SetVariable,   // Op XReg
+    SetValue,      // Op XReg
+    GetStructure,  // Op Ident Arity XReg
     UnifyVariable, // Op XReg
-    UnifyValue,   // Op XReg
+    UnifyValue,    // Op XReg
 }
 
 impl PartialEq<usize> for OpCode {
