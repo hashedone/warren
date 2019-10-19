@@ -1,10 +1,17 @@
 use crate::query::{Query, QueryResult};
-use crate::storage::Storage;
+use crate::storage::{Cell, Storage};
 use crate::{Operation, Program};
+
+enum UnificationState {
+    Read,
+    Write,
+}
 
 pub struct Machine {
     pub(crate) storage: Storage,
-    pub(crate) preg: usize,      // Instruction pointer register
+    preg: usize,      // Instruction pointer register
+    sreg: usize,      // S register
+    unification_state: UnificationState, // Read/Write state for unification
 }
 
 impl Default for Machine {
@@ -12,6 +19,8 @@ impl Default for Machine {
         Self {
             storage: Storage::new(),
             preg: 0,
+            sreg: 0,
+            unification_state: UnificationState::Read,
         }
     }
 }
@@ -41,7 +50,7 @@ impl Machine {
         }
     }
 
-    fn perform_op(&mut self, op: Operation) {
+    fn perform_op(&mut self, op: Operation) -> bool {
         match op {
             Operation::PutStructure(ident, arity, xreg) => self.put_structure(ident, arity, xreg),
             Operation::SetVariable(xreg) => self.set_variable(xreg),
@@ -49,18 +58,76 @@ impl Machine {
         }
     }
 
-    fn put_structure(&mut self, ident: usize, arity: usize, xreg: usize) {
+    fn put_structure(&mut self, ident: usize, arity: usize, xreg: usize) -> bool {
         let cell = self.storage.push_struct(ident, arity);
         self.storage[xreg] = cell;
+        true
     }
 
-    fn set_variable(&mut self, xreg: usize) {
+    fn set_variable(&mut self, xreg: usize) -> bool {
         let cell = self.storage.push_var();
         self.storage[xreg] = cell;
+        true
     }
 
-    fn set_value(&mut self, xreg: usize) {
+    fn set_value(&mut self, xreg: usize) -> bool {
         self.storage.push_cell(self.storage[xreg]);
+        true
+    }
+
+    fn get_structure(
+        &mut self,
+        ident: usize,
+        arity: usize,
+        xreg: usize
+    ) -> bool {
+        let item = if let Some(item) = self.storage.deref(xreg) {
+            item
+        } else { return false };
+
+        match item {
+            Cell::Ref(r) => {
+                let idx = self.storage.len();
+                self.storage.push_struct(ident, arity);
+//                self.storage.bind(r, idx); TODO: Implement bind
+                self.unification_state = UnificationState::Write;
+                true
+            },
+            Cell::Struct(a) => {
+                if Cell::Funct(ident, arity) == self.storage[a] {
+                    self.sreg = a + 1;
+                    self.unification_state = UnificationState::Read;
+                    true
+                } else { false }
+            },
+            _ => false,
+        }
+    }
+
+    fn unify_variable(&mut self, xreg: usize) -> bool {
+        match self.unification_state {
+            UnificationState::Read => {
+                self.storage[xreg] = self.storage[self.sreg];
+            },
+            UnificationState::Write => {
+                self.storage[xreg] = self.storage.push_var();
+            },
+        }
+        self.sreg += 1;
+        true
+    }
+
+    fn unify_value(&mut self, xreg: usize) -> bool {
+        match self.unification_state {
+            UnificationState::Read => {
+                // ???? unify(Xi, S)
+            },
+            UnificationState::Write => {
+                self.storage.push_cell(self.storage[xreg]);
+            },
+        }
+        self.sreg += 1;
+        true
     }
 }
 

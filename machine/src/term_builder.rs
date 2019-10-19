@@ -62,12 +62,15 @@ mod tests {
             Cell::Funct(0, 0),
         ].into_iter());
 
-        let machine = Machine {
-            storage,
-            ..Default::default()
+        let machine = {
+            let mut machine = Machine::new();
+            machine.storage = storage;
+            machine
         };
 
-        let term = machine.build_term(Cell::Struct(1), &mut Builder).unwrap();
+        let term = machine
+            .build_term(Cell::Struct(1), &mut Builder)
+            .unwrap();
         let expected = Term::Const(0);
 
         assert_eq!(expected, term);
@@ -79,12 +82,15 @@ mod tests {
             Cell::Ref(0),
         ].into_iter());
 
-        let machine = Machine {
-            storage,
-            ..Default::default()
+        let machine = {
+            let mut machine = Machine::new();
+            machine.storage = storage;
+            machine
         };
 
-        let term = machine.build_term(Cell::Ref(0), &mut Builder).unwrap();
+        let term = machine
+            .build_term(Cell::Ref(0), &mut Builder)
+            .unwrap();
         let expected = Term::Var(0);
 
         assert_eq!(expected, term);
@@ -107,9 +113,10 @@ mod tests {
             Cell::Struct(5),
         ].into_iter());
 
-        let machine = Machine {
-            storage,
-            ..Default::default()
+        let machine = {
+            let mut machine = Machine::new();
+            machine.storage = storage;
+            machine
         };
 
         let term = machine.build_term(Cell::Struct(8), &mut Builder).unwrap();
