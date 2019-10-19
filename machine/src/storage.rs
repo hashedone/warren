@@ -27,6 +27,17 @@ pub trait StorageMut {
     /// This should be followed by `arity` additional subcells pushing
     /// to keep storage valid
     fn push_struct(&mut self, ident: usize, arity: usize) -> Cell;
+
+    /// Binds values in storage
+    ///
+    /// After this operation if one of the addressed cell is self-reference,
+    /// it becomes a reference to the other cell. If both cells are
+    /// self-references, the one is left, and the other becomes reference to
+    /// the first. If no cell is self-reference, nothing happens.
+    fn bind(&mut self, left: usize, right: usize);
+
+    /// Unifies two addresses in storage
+    fn unify(&mut self, a1: usize, a2: usize) -> bool;
 }
 
 impl StorageMut for Vec<Cell> {
@@ -40,28 +51,66 @@ impl StorageMut for Vec<Cell> {
         self.push(Cell::Funct(ident, arity));
         self[self.len() - 2]
     }
+
+    fn bind(&mut self, left: usize, right: usize) {
+        match (self[left], self[right]) {
+            (Cell::Ref(lcell), _) if lcell == left => {
+                self[left] = Cell::Ref(right)
+            },
+            (_, Cell::Ref(rcell)) if rcell == right => {
+                self[right] = Cell::Ref(left)
+            },
+            _ => ()
+        }
+    }
+
+    fn unify(&mut self, a1: usize, a2: usize) -> bool {
+        let mut pld = vec![(a1, a2)];
+
+        while let Some((d1, d2)) = pld.pop() {
+            let d1 = self.deref(d1);
+            let d2 = self.deref(d2);
+            if d1 != d2 {
+                match (self[d1], self[d2]) {
+                    (Cell::Ref(_), _) | (_, Cell::Ref(_)) =>
+                        self.bind(d1, d2),
+                    (Cell::Struct(v1), Cell::Struct(v2)) => {
+                        if let (Cell::Funct(f1, n1), Cell::Funct(f2, n2)) =
+                            (self[v1], self[v2])
+                        {
+                            if f1 == f2 && n1 == n2 {
+                                for i in 1..=n1 {
+                                    pld.push((v1 + i, v2 + i))
+                                }
+                            } else { return false }
+                        } else { return false }
+                    },
+                    _ => return false
+                }
+            }
+        }
+
+        true
+    }
 }
 
 /// Storage of "cells"
 pub trait Storage {
     /// Dereferences cell under given address
-    fn deref(&self, addr: usize) -> Option<Cell>;
+    fn deref(&self, addr: usize) -> usize;
 }
 
 impl Storage for [Cell] {
-    fn deref(&self, mut addr: usize) -> Option<Cell> {
-        let mut r = self.get(addr).cloned();
-
-        while let Some(Cell::Ref(a)) = r {
-            if a == addr {
-                return r;
+    fn deref(&self, mut addr: usize) -> usize {
+        while let Some(Cell::Ref(a)) = self.get(addr) {
+            if *a == addr {
+                return addr;
             } else {
-                addr = a;
-                r = self.get(addr).cloned()
+                addr = *a;
             }
         }
 
-        r
+        addr
     }
 }
 
@@ -114,10 +163,10 @@ mod test {
         storage.push(Cell::Ref(0));
         storage.push(v.clone());
 
-        assert_eq!(Cell::Struct(1), storage.deref(0).unwrap());
-        assert_eq!(Cell::Funct(0, 0), storage.deref(1).unwrap());
-        assert_eq!(Cell::Ref(2), storage.deref(2).unwrap());
-        assert_eq!(Cell::Struct(1), storage.deref(3).unwrap());
-        assert_eq!(Cell::Ref(2), storage.deref(4).unwrap());
+        assert_eq!(0, storage.deref(0));
+        assert_eq!(1, storage.deref(1));
+        assert_eq!(2, storage.deref(2));
+        assert_eq!(0, storage.deref(3));
+        assert_eq!(2, storage.deref(4));
     }
 }

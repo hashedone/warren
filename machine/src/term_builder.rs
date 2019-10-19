@@ -20,12 +20,12 @@ impl Machine {
     ) -> Option<Builder::Term> {
         match cell {
             Cell::Ref(idx) => {
-                let target = self.heap.deref(idx)?;
+                let target = self.heap.deref(idx);
 
-                if let Cell::Ref(idx) = target {
+                if let Cell::Ref(idx) = self.heap[target] {
                     Some(builder.variable(idx))
                 } else {
-                    self.build_term(target, builder)
+                    self.build_term(self.heap[target], builder)
                 }
             }
             Cell::Struct(idx) => {
@@ -62,13 +62,16 @@ mod tests {
 
         let regs = vec![heap[0]];
 
-        let machine = Machine {
-            heap,
-            xregs: regs,
-            ..Default::default()
+        let machine = {
+            let mut machine = Machine::new();
+            machine.heap = heap;
+            machine.xregs = regs;
+            machine
         };
 
-        let term = machine.build_term(Cell::Struct(1), &mut Builder).unwrap();
+        let term = machine
+            .build_term(Cell::Struct(1), &mut Builder)
+            .unwrap();
         let expected = Term::Const(0);
 
         assert_eq!(expected, term);
@@ -80,13 +83,16 @@ mod tests {
 
         let regs = vec![heap[0]];
 
-        let machine = Machine {
-            heap,
-            xregs: regs,
-            ..Default::default()
+        let machine = {
+            let mut machine = Machine::new();
+            machine.heap = heap;
+            machine.xregs = regs;
+            machine
         };
 
-        let term = machine.build_term(Cell::Ref(0), &mut Builder).unwrap();
+        let term = machine
+            .build_term(Cell::Ref(0), &mut Builder)
+            .unwrap();
         let expected = Term::Var(0);
 
         assert_eq!(expected, term);
@@ -111,10 +117,11 @@ mod tests {
 
         let regs = vec![heap[7]];
 
-        let machine = Machine {
-            heap,
-            xregs: regs,
-            ..Default::default()
+        let machine = {
+            let mut machine = Machine::new();
+            machine.heap = heap;
+            machine.xregs = regs;
+            machine
         };
 
         let term = machine.build_term(Cell::Struct(8), &mut Builder).unwrap();
