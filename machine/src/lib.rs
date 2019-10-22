@@ -2,6 +2,7 @@ mod machine;
 mod operation;
 mod program;
 pub mod query;
+pub mod statement;
 mod storage;
 pub mod term_builder;
 #[cfg(test)]
