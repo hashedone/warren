@@ -167,6 +167,26 @@ impl ProgramBuilder {
         self
     }
 
+    pub fn get_structure(&mut self, ident: usize, arity: usize, xreg: usize) -> &mut Self {
+        self.program.push(OpCode::GetStructure as usize);
+        self.program.push(ident);
+        self.program.push(arity);
+        self.program.push(xreg);
+        self
+    }
+
+    pub fn unify_variable(&mut self, xreg: usize) -> &mut Self {
+        self.program.push(OpCode::UnifyVariable as usize);
+        self.program.push(xreg);
+        self
+    }
+
+    pub fn unify_value(&mut self, xreg: usize) -> &mut Self {
+        self.program.push(OpCode::UnifyValue as usize);
+        self.program.push(xreg);
+        self
+    }
+
     pub fn build(self) -> Program<'static> {
         Program {
             program: self.program.into(),

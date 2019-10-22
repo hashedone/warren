@@ -1,6 +1,6 @@
 use crate::program::ProgramBuilder;
 use crate::Program;
-use std::borrow::Borrow;
+use bitvec::{bitbox, bitvec};
 
 /// Reference to statement part for building complex (structure)
 /// statements
@@ -28,7 +28,7 @@ impl Default for StatementBuilder {
         Self {
             // First register is reserved for top-level
             // structure
-            registers: vec![RegisterAllocation::Var]
+            registers: vec![RegisterAllocation::Var],
         }
     }
 }
@@ -50,7 +50,7 @@ impl StatementBuilder {
     ) -> StatementRef {
         self.registers.push(RegisterAllocation::Struct(
             ident,
-            subterms.into_iter().map(|StatementRef(r)| r).collect()
+            subterms.into_iter().map(|StatementRef(r)| r).collect(),
         ));
         StatementRef(self.registers.len() - 1)
     }
@@ -59,12 +59,32 @@ impl StatementBuilder {
         self.structure(ident, std::iter::empty())
     }
 
-    pub fn build(
-        mut self,
-        StatementRef(r): StatementRef
-    ) -> Statement<'static> {
+    pub fn build(mut self, StatementRef(r): StatementRef) -> Statement<'static> {
         self.registers.swap(0, r);
 
-        unimplemented!()
+        let mut stack = vec![0];
+        let mut visited = bitbox![0; self.registers.len()];
+        let mut program = ProgramBuilder::default();
+
+        while let Some(reg) = stack.pop() {
+            if let RegisterAllocation::Struct(ident, st) = &self.registers[reg] {
+                program.get_structure(*ident, st.len(), reg);
+
+                for i in st {
+                    if visited.get(*i).unwrap_or(false) {
+                        program.unify_value(*i);
+                    } else {
+                        program.unify_variable(*i);
+                        visited.set(*i, true);
+                    }
+
+                    stack.push(*i);
+                }
+            }
+        }
+
+        Statement {
+            program: program.build(),
+        }
     }
 }
