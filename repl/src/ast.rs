@@ -22,4 +22,11 @@ impl std::fmt::Debug for Term {
 #[derive(Debug)]
 pub enum Statement {
     Query(Term),
+    Fact(Term),
+}
+
+#[derive(Debug)]
+pub enum Directive {
+    Statement(Statement),
+    Assembly(Statement),
 }

@@ -12,6 +12,12 @@ pub struct Statement<'a> {
     pub(crate) program: Program<'a>,
 }
 
+impl<'a> Statement<'a> {
+    pub fn assembly(&self) -> String {
+        self.program.assembly()
+    }
+}
+
 #[derive(Clone)]
 enum RegisterAllocation {
     Var,

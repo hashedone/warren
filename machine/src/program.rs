@@ -124,6 +124,25 @@ impl<'a> Program<'a> {
     pub fn x_registers(&self) -> usize {
         self.xregs
     }
+
+    /// Returns iterator over operations with their indexes
+    fn operations(&self) -> impl Iterator<Item=(usize, Operation)> + '_ {
+        let mut p = 0;
+        std::iter::from_fn(move || -> Option<(usize, Operation)> {
+            let op = self.operation(p)?;
+            let oldp = p;
+            p += op.size();
+            Some((oldp, op))
+        })
+    }
+
+    /// Assembly of program
+    pub fn assembly(&self) -> String {
+        let lines: Vec<_> = self.operations()
+            .map(|(idx, op)| format!("{:4}: {:?}", idx, op))
+            .collect();
+        lines.join("\n")
+    }
 }
 
 pub struct ProgramBuilder {

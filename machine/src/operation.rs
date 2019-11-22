@@ -17,6 +17,18 @@ impl Operation {
     /// is additional item in program
     pub fn advance(&self) -> usize {
         match self {
+            Self::PutStructure(_, _, _) |
+            Self::SetVariable(_) |
+            Self::SetValue(_) |
+            Self::GetStructure(_, _, _) |
+            Self::UnifyVariable(_) |
+            Self::UnifyValue(_) => self.size(),
+        }
+    }
+
+    /// Instruction size
+    pub(crate) fn size(&self) -> usize {
+        match self {
             Self::PutStructure(_, _, _) => 4,
             Self::SetVariable(_) => 2,
             Self::SetValue(_) => 2,

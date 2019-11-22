@@ -1,6 +1,5 @@
 use crate::program::ProgramBuilder;
 use crate::{Cell, Machine, Program, TermBuilder};
-use std::borrow::Borrow;
 
 /// Reference to query part for building complex (structure)
 /// queries, and later for extracting unification result
@@ -18,6 +17,12 @@ pub struct Query<'a> {
     pub(crate) program: Program<'a>,
     // Register with top-level struct assigned
     pub(crate) top_level: usize,
+}
+
+impl<'a> Query<'a> {
+    pub fn assembly(&self) -> String {
+        self.program.assembly()
+    }
 }
 
 /// Builder for structured query
@@ -61,19 +66,23 @@ impl QueryBuilder {
     pub fn structure(
         &mut self,
         ident: usize,
-        subterms: impl ExactSizeIterator<Item = impl Borrow<QueryRef>>,
+        subterms: impl IntoIterator<
+            Item = QueryRef,
+            IntoIter = impl ExactSizeIterator<Item = QueryRef>,
+        >,
     ) -> QueryRef {
+        let subterms = subterms.into_iter();
         let register = self.next_register();
         self.program.put_structure(ident, subterms.len(), register);
         for subterm in subterms {
-            let QueryRef(reg) = subterm.borrow();
-            self.program.set_value(*reg);
+            let QueryRef(reg) = subterm;
+            self.program.set_value(reg);
         }
         QueryRef(register)
     }
 
     pub fn constant(&mut self, ident: usize) -> QueryRef {
-        self.structure(ident, std::iter::empty::<QueryRef>())
+        self.structure(ident, std::iter::empty())
     }
 
     pub fn build(self, QueryRef(r): QueryRef) -> Query<'static> {

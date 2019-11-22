@@ -1,11 +1,11 @@
-use crate::ast::{Statement, Term};
+use crate::ast::{Directive, Statement, Term};
 use nom::{
     branch::alt,
-    bytes::complete::{take_while, take_while1},
+    bytes::complete::{take_while, take_while1, tag},
     character::complete::{char, multispace0 as ws},
     combinator::map,
     multi::separated_nonempty_list,
-    sequence::{delimited, terminated, tuple},
+    sequence::{delimited, terminated, tuple, preceded},
 };
 
 type IResult<I, O> = nom::IResult<I, O, nom::error::VerboseError<I>>;
@@ -49,10 +49,32 @@ fn query(s: &str) -> IResult<&str, Statement> {
     map(terminated(term, char('?')), Statement::Query)(s)
 }
 
-pub fn statement(s: &str) -> IResult<&str, Statement> {
-    query(s)
+fn fact(s: &str) -> IResult<&str, Statement> {
+    map(terminated(term, char('.')), Statement::Fact)(s)
 }
 
-pub fn parse(s: &str) -> Result<Statement, nom::Err<nom::error::VerboseError<&str>>> {
-    statement(s).map(|(_, r)| r)
+pub fn statement(s: &str) -> IResult<&str, Directive> {
+    map(alt((query, fact)), Directive::Statement)(s)
+}
+
+pub fn assembly(s: &str) -> IResult<&str, Directive> {
+    map(
+        preceded(
+            tuple((tag("@asm"), ws)),
+            alt((query, fact))
+        ),
+        Directive::Assembly
+    )(s)
+}
+
+
+pub fn directive(s: &str) -> IResult<&str, Directive> {
+    alt((statement, assembly))(s)
+}
+
+pub fn parse(s: &str) -> Result<
+    Directive,
+    nom::Err<nom::error::VerboseError<&str>>
+> {
+    directive(s).map(|(_, r)| r)
 }
