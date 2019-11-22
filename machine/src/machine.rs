@@ -8,7 +8,7 @@ enum UnificationState {
 }
 
 pub struct Machine {
-    pub(crate) storage: Storage,
+    storage: Storage,
     preg: usize,                         // Instruction pointer register
     sreg: usize,                         // S register
     unification_state: UnificationState, // Read/Write state for unification
@@ -30,12 +30,28 @@ impl Machine {
         Default::default()
     }
 
+    #[cfg(test)]
+    pub(crate) fn with_storage(storage: Storage) -> Self {
+        Self {
+            storage,
+            ..Default::default()
+        }
+    }
+
     fn run(&mut self, program: &Program) {
         self.preg = 0;
         while let Some(op) = program.operation(self.preg) {
             self.perform_op(op);
             self.preg += op.advance();
         }
+    }
+
+    pub(crate) fn storage(&self) -> &Storage {
+        &self.storage
+    }
+
+    pub(crate) fn storage_mut(&mut self) -> &mut Storage {
+        &mut self.storage
     }
 
     pub fn query(&mut self, query: Query) -> QueryResult {

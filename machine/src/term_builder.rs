@@ -19,7 +19,7 @@ impl Machine {
     ) -> Option<Builder::Term> {
         match cell {
             Cell::Ref(idx) => {
-                let target = self.storage.deref(idx)?;
+                let target = self.storage().deref(idx)?;
 
                 if let Cell::Ref(idx) = target {
                     Some(builder.variable(idx))
@@ -28,11 +28,11 @@ impl Machine {
                 }
             }
             Cell::Struct(idx) => {
-                if let Cell::Funct(ident, arity) = self.storage.get(idx)? {
+                if let Cell::Funct(ident, arity) = self.storage().get(idx)? {
                     if *arity == 0 {
                         Some(builder.constant(*ident))
                     } else {
-                        let subterms: Option<Vec<_>> = self.storage[idx + 1..=idx + arity]
+                        let subterms: Option<Vec<_>> = self.storage()[idx + 1..=idx + arity]
                             .iter()
                             .map(|cell| self.build_term(*cell, builder))
                             .collect();
@@ -58,13 +58,10 @@ mod tests {
     fn single_const() {
         let storage = Storage::from_iter(0, vec![Cell::Struct(1), Cell::Funct(0, 0)].into_iter());
 
-        let machine = {
-            let mut machine = Machine::new();
-            machine.storage = storage;
-            machine
-        };
-
-        let term = machine.build_term(Cell::Struct(1), &mut Builder).unwrap();
+        let machine = Machine::with_storage(storage);
+        let term = machine
+            .build_term(Cell::Struct(1), &mut Builder)
+            .unwrap();
         let expected = Term::Const(0);
 
         assert_eq!(expected, term);
@@ -74,13 +71,10 @@ mod tests {
     fn single_var() {
         let storage = Storage::from_iter(0, vec![Cell::Ref(0)].into_iter());
 
-        let machine = {
-            let mut machine = Machine::new();
-            machine.storage = storage;
-            machine
-        };
-
-        let term = machine.build_term(Cell::Ref(0), &mut Builder).unwrap();
+        let machine = Machine::with_storage(storage);
+        let term = machine
+            .build_term(Cell::Ref(0), &mut Builder)
+            .unwrap();
         let expected = Term::Var(0);
 
         assert_eq!(expected, term);
@@ -107,13 +101,10 @@ mod tests {
             .into_iter(),
         );
 
-        let machine = {
-            let mut machine = Machine::new();
-            machine.storage = storage;
-            machine
-        };
-
-        let term = machine.build_term(Cell::Struct(8), &mut Builder).unwrap();
+        let machine =  Machine::with_storage(storage);
+        let term = machine
+            .build_term(Cell::Struct(8), &mut Builder)
+            .unwrap();
 
         let expected = Term::Struct(
             2,
